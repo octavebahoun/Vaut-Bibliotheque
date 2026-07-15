@@ -399,6 +399,109 @@ header.app-header {
 .share-page img { max-width: min(900px, 92vw); max-height: 78vh; object-fit: contain; box-shadow: 0 24px 64px rgba(26,26,30,0.12); }
 .share-meta { text-align: center; }
 
+/* ── Gestionnaire de clés / .env ──────────────────────────── */
+.keys-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+.project-rail { display: flex; flex-direction: column; gap: 2px; }
+.project-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; background: var(--off); border: 1px solid transparent;
+  cursor: pointer; font-size: 13px; color: var(--ink2); transition: all 0.2s;
+}
+.project-item:hover { background: var(--light); }
+.project-item.active { background: var(--white); border-color: var(--border2); color: var(--ink); }
+.project-item .count { font-size: 10px; color: var(--slate); }
+.project-add {
+  margin-top: 12px; display: flex; gap: 8px;
+}
+.project-add input { flex: 1; }
+
+.keys-panel { min-width: 0; }
+.keys-toolbar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin-bottom: 20px; flex-wrap: wrap;
+}
+.keys-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-sm {
+  background: none; border: 1px solid var(--border2); color: var(--slate);
+  font-family: 'Jost', sans-serif; font-size: 10px; font-weight: 500;
+  letter-spacing: 1.5px; text-transform: uppercase; padding: 8px 14px;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-sm:hover { border-color: var(--ink2); color: var(--ink); }
+.btn-sm.solid { background: var(--ink); color: #fff; border-color: var(--ink); }
+.btn-sm.solid:hover { background: var(--ink2); }
+.btn-sm.copied { background: var(--success); color: #fff; border-color: var(--success); }
+.btn-sm.danger:hover { border-color: var(--danger); color: var(--danger); }
+
+.secret-table { display: flex; flex-direction: column; }
+.secret-row {
+  display: grid; grid-template-columns: 220px 1fr auto; gap: 14px;
+  align-items: center; padding: 11px 0; border-bottom: 1px solid var(--border);
+}
+.secret-row .k {
+  font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 500;
+  letter-spacing: 0.5px; color: var(--ink); word-break: break-all;
+}
+.secret-row .v {
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  font-size: 12px; color: var(--slate2); overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+.secret-row .row-actions { display: flex; gap: 6px; justify-content: flex-end; }
+.icon-btn {
+  background: none; border: none; color: var(--slate); cursor: pointer;
+  font-size: 11px; letter-spacing: 1px; text-transform: uppercase; padding: 4px 6px;
+  font-family: 'Jost', sans-serif; transition: color 0.2s;
+}
+.icon-btn:hover { color: var(--ink); }
+.icon-btn.danger:hover { color: var(--danger); }
+
+.secret-form {
+  display: grid; grid-template-columns: 220px 1fr auto; gap: 14px;
+  align-items: end; margin-top: 20px; padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+.secret-form .field { margin-bottom: 0; }
+
+.env-preview {
+  margin-top: 20px; background: var(--ink); color: #e8e8ea;
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  font-size: 12px; line-height: 1.7; padding: 20px 22px;
+  white-space: pre; overflow-x: auto; border-radius: 2px;
+}
+.env-preview .c { color: var(--slate); }
+
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(248,248,247,0.88);
+  backdrop-filter: blur(20px); z-index: 200;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.modal-box {
+  width: 520px; max-width: 100%; background: var(--white);
+  border: 1px solid var(--border); padding: 36px;
+  box-shadow: 0 24px 64px rgba(26,26,30,0.07);
+  animation: rise 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.modal-box textarea {
+  width: 100%; min-height: 180px; background: var(--off);
+  border: 1px solid var(--border2); color: var(--ink); padding: 12px 14px;
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace; font-size: 12px;
+  outline: none; resize: vertical;
+}
+.modal-footer { display: flex; gap: 10px; margin-top: 22px; }
+
+@media (max-width: 860px) {
+  .keys-layout { grid-template-columns: 1fr; gap: 24px; }
+  .secret-row, .secret-form { grid-template-columns: 1fr; gap: 8px; }
+  .secret-row .row-actions { justify-content: flex-start; }
+}
+
 @media (max-width: 640px) {
   header.app-header { padding: 0 20px; }
   .header-right { gap: 12px; }
