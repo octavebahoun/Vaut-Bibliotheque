@@ -26,6 +26,12 @@ export default function AppHeader({ email }: { email: string }) {
         >
           Clés / .env
         </Link>
+        <Link
+          href="/settings"
+          className={`nav-link ${is("/settings") ? "active" : ""}`}
+        >
+          Réglages
+        </Link>
         <span className="stat-chip" title={email}>
           {email}
         </span>

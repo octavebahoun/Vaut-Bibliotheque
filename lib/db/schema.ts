@@ -34,6 +34,20 @@ export const sessions = pgTable(
   (t) => [index("sessions_user_id_idx").on(t.userId)],
 );
 
+// ── Config Cloudinary par utilisateur (BYO credentials) ───────
+export const cloudinaryConfigs = pgTable("cloudinary_configs", {
+  userId: uuid("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  cloudName: text("cloud_name").notNull(),
+  apiKey: text("api_key").notNull(),
+  apiSecretEncrypted: text("api_secret_encrypted").notNull(),
+  folder: text("folder").notNull().default("vault"),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 // ── Images ────────────────────────────────────────────────────
 export const images = pgTable(
   "images",
@@ -98,6 +112,7 @@ export const secrets = pgTable(
 
 export type User = typeof users.$inferSelect;
 export type Session = typeof sessions.$inferSelect;
+export type CloudinaryConfig = typeof cloudinaryConfigs.$inferSelect;
 export type Image = typeof images.$inferSelect;
 export type Project = typeof projects.$inferSelect;
 export type Secret = typeof secrets.$inferSelect;

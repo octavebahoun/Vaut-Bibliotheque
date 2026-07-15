@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
+import Link from "next/link";
 import type { Image } from "@/lib/db/schema";
 import {
   saveImage,
@@ -9,7 +10,7 @@ import {
 } from "@/lib/images/actions";
 import Toast, { useToast } from "@/components/Toast";
 
-type Props = { initialImages: Image[] };
+type Props = { initialImages: Image[]; configured: boolean };
 
 const COMPRESSIBLE = ["image/jpeg", "image/png", "image/webp"];
 
@@ -28,7 +29,7 @@ type QueueItem = {
   note?: string;
 };
 
-export default function ImageStudio({ initialImages }: Props) {
+export default function ImageStudio({ initialImages, configured }: Props) {
   const [images, setImages] = useState<Image[]>(initialImages);
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [query, setQuery] = useState("");
@@ -211,6 +212,19 @@ export default function ImageStudio({ initialImages }: Props) {
       {/* Upload */}
       <div className="container" style={{ paddingBottom: 0 }}>
         <div className="section-label">Upload</div>
+
+        {!configured && (
+          <div className="notice">
+            <span>
+              Aucun compte Cloudinary connecté — les uploads ne fonctionneront
+              pas tant que vous n&apos;avez pas branché le vôtre.
+            </span>
+            <Link className="btn-sm" href="/settings">
+              Configurer
+            </Link>
+          </div>
+        )}
+
         <div
           className={`drop-zone ${dragover ? "dragover" : ""}`}
           onDragOver={(e) => {

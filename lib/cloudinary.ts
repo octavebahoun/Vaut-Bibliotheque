@@ -1,45 +1,61 @@
 import { v2 as cloudinary } from "cloudinary";
 
-let configured = false;
-
-function ensureConfigured() {
-  if (configured) return;
-  const cloud_name = process.env.CLOUDINARY_CLOUD_NAME;
-  const api_key = process.env.CLOUDINARY_API_KEY;
-  const api_secret = process.env.CLOUDINARY_API_SECRET;
-  if (!cloud_name || !api_key || !api_secret) {
-    throw new Error(
-      "Cloudinary non configuré (CLOUDINARY_CLOUD_NAME / API_KEY / API_SECRET)",
-    );
-  }
-  cloudinary.config({ cloud_name, api_key, api_secret, secure: true });
-  configured = true;
-}
-
-export const CLOUD_NAME = () => process.env.CLOUDINARY_CLOUD_NAME ?? "";
-export const UPLOAD_FOLDER = () =>
-  process.env.CLOUDINARY_UPLOAD_FOLDER || "vault";
-
-// Signature d'un upload direct depuis le navigateur (upload signé).
-export function signUpload(params: Record<string, string | number>): {
-  signature: string;
-  apiKey: string;
+export type CloudinaryCreds = {
   cloudName: string;
-} {
-  ensureConfigured();
-  const signature = cloudinary.utils.api_sign_request(
-    params,
-    process.env.CLOUDINARY_API_SECRET!,
-  );
-  return {
-    signature,
-    apiKey: process.env.CLOUDINARY_API_KEY!,
-    cloudName: process.env.CLOUDINARY_CLOUD_NAME!,
-  };
+  apiKey: string;
+  apiSecret: string;
+  folder: string;
+};
+
+// Signature d'un upload direct depuis le navigateur (upload signé),
+// avec les identifiants Cloudinary de l'utilisateur.
+export function signUpload(
+  creds: CloudinaryCreds,
+  params: Record<string, string | number>,
+): { signature: string; apiKey: string; cloudName: string } {
+  const signature = cloudinary.utils.api_sign_request(params, creds.apiSecret);
+  return { signature, apiKey: creds.apiKey, cloudName: creds.cloudName };
 }
 
-// Suppression réelle sur Cloudinary.
-export async function destroyImage(publicId: string): Promise<void> {
-  ensureConfigured();
-  await cloudinary.uploader.destroy(publicId, { invalidate: true });
+// Suppression réelle sur Cloudinary via l'API REST (upload/destroy signé).
+export async function destroyImage(
+  creds: CloudinaryCreds,
+  publicId: string,
+): Promise<void> {
+  const timestamp = Math.round(Date.now() / 1000);
+  const toSign = { invalidate: true, public_id: publicId, timestamp };
+  const signature = cloudinary.utils.api_sign_request(toSign, creds.apiSecret);
+
+  const body = new URLSearchParams({
+    public_id: publicId,
+    invalidate: "true",
+    timestamp: String(timestamp),
+    api_key: creds.apiKey,
+    signature,
+  });
+
+  await fetch(
+    `https://api.cloudinary.com/v1_1/${creds.cloudName}/image/destroy`,
+    { method: "POST", body },
+  );
+}
+
+// Vérifie des identifiants via l'endpoint /ping de l'Admin API (Basic auth).
+export async function pingCloudinary(
+  creds: Omit<CloudinaryCreds, "folder">,
+): Promise<boolean> {
+  const auth = Buffer.from(`${creds.apiKey}:${creds.apiSecret}`).toString(
+    "base64",
+  );
+  try {
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${creds.cloudName}/ping`,
+      { headers: { Authorization: `Basic ${auth}` } },
+    );
+    if (!res.ok) return false;
+    const data = (await res.json()) as { status?: string };
+    return data?.status === "ok";
+  } catch {
+    return false;
+  }
 }

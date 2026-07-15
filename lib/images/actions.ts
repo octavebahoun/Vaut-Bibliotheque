@@ -6,6 +6,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { images } from "@/lib/db/schema";
 import { getCurrentUser } from "@/lib/auth/session";
+import { getUserCreds } from "@/lib/cloudinary-store";
 import { destroyImage } from "@/lib/cloudinary";
 
 export type UploadedImage = {
@@ -53,7 +54,8 @@ export async function deleteImageAction(id: string) {
 
   // Suppression réelle sur Cloudinary (best-effort) puis en base.
   try {
-    await destroyImage(img.publicId);
+    const creds = await getUserCreds(user.id);
+    if (creds) await destroyImage(creds, img.publicId);
   } catch {
     // on supprime quand même l'entrée locale
   }
