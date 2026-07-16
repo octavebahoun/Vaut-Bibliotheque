@@ -7,6 +7,7 @@ import {
   saveImage,
   deleteImageAction,
   toggleShareAction,
+  importFromCloudinary,
 } from "@/lib/images/actions";
 import Toast, { useToast } from "@/components/Toast";
 import Lightbox from "@/components/Lightbox";
@@ -38,6 +39,7 @@ export default function ImageStudio({ initialImages, configured }: Props) {
   const [collection, setCollection] = useState(""); // dossier cible pour l'upload
   const [filterFolder, setFilterFolder] = useState<string | null>(null); // null = tous
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [importing, setImporting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const collectionRef = useRef(""); // évite les closures périmées dans uploadOne
   const { toast, show } = useToast();
@@ -176,6 +178,41 @@ export default function ImageStudio({ initialImages, configured }: Props) {
       show("Image supprimée");
     } catch {
       show("Erreur lors de la suppression", true);
+    }
+  }
+
+  async function onImport() {
+    setImporting(true);
+    try {
+      const res = await importFromCloudinary();
+      if (res.error) {
+        show(res.error, true);
+        return;
+      }
+      if (res.imported.length > 0) {
+        setImages((imgs) => {
+          const seen = new Set(imgs.map((i) => i.id));
+          const merged = [...res.imported.filter((i) => !seen.has(i.id)), ...imgs];
+          return merged.sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+          );
+        });
+        show(
+          `${res.imported.length} image(s) importée(s)` +
+            (res.skipped ? ` · ${res.skipped} déjà présentes` : ""),
+        );
+      } else {
+        show(
+          res.scanned === 0
+            ? "Aucune image trouvée sur votre compte Cloudinary"
+            : "Rien de nouveau à importer",
+        );
+      }
+    } catch {
+      show("Erreur pendant l'import", true);
+    } finally {
+      setImporting(false);
     }
   }
 
@@ -342,13 +379,25 @@ export default function ImageStudio({ initialImages, configured }: Props) {
               <b>{totalSize ? formatSize(totalSize) : "—"}</b>
             </div>
           </div>
-          <div className="search-wrap">
-            <input
-              type="text"
-              placeholder="Rechercher"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
+          <div className="gallery-actions">
+            {configured && (
+              <button
+                className="btn-sm"
+                onClick={onImport}
+                disabled={importing}
+                title="Récupérer les images déjà présentes sur votre compte Cloudinary"
+              >
+                {importing ? "Import…" : "Importer depuis Cloudinary"}
+              </button>
+            )}
+            <div className="search-wrap">
+              <input
+                type="text"
+                placeholder="Rechercher"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </div>
           </div>
         </div>
 
