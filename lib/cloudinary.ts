@@ -97,6 +97,75 @@ export async function getCloudinaryUsage(
   }
 }
 
+export type CloudinaryResource = {
+  publicId: string;
+  url: string;
+  name: string;
+  size: number;
+  width?: number;
+  height?: number;
+  format?: string;
+  folder?: string;
+};
+
+// Liste (paginée) les images existantes du compte via l'Admin API.
+export async function listCloudinaryImages(
+  creds: Omit<CloudinaryCreds, "folder">,
+  cursor?: string,
+): Promise<{ resources: CloudinaryResource[]; nextCursor?: string }> {
+  const auth = Buffer.from(`${creds.apiKey}:${creds.apiSecret}`).toString(
+    "base64",
+  );
+  const params = new URLSearchParams({
+    max_results: "100",
+    type: "upload",
+  });
+  if (cursor) params.set("next_cursor", cursor);
+
+  const res = await fetch(
+    `https://api.cloudinary.com/v1_1/${creds.cloudName}/resources/image?${params}`,
+    { headers: { Authorization: `Basic ${auth}` }, cache: "no-store" },
+  );
+  if (!res.ok) {
+    throw new Error(`Cloudinary a répondu ${res.status}`);
+  }
+  const data = (await res.json()) as {
+    resources?: Array<{
+      public_id: string;
+      secure_url?: string;
+      url?: string;
+      bytes?: number;
+      width?: number;
+      height?: number;
+      format?: string;
+      folder?: string;
+      asset_folder?: string;
+    }>;
+    next_cursor?: string;
+  };
+
+  const resources: CloudinaryResource[] = (data.resources ?? []).map((r) => {
+    const base = r.public_id.includes("/")
+      ? r.public_id.slice(r.public_id.lastIndexOf("/") + 1)
+      : r.public_id;
+    const folderFromId = r.public_id.includes("/")
+      ? r.public_id.slice(0, r.public_id.lastIndexOf("/"))
+      : undefined;
+    return {
+      publicId: r.public_id,
+      url: r.secure_url ?? r.url ?? "",
+      name: r.format ? `${base}.${r.format}` : base,
+      size: r.bytes ?? 0,
+      width: r.width,
+      height: r.height,
+      format: r.format,
+      folder: r.asset_folder || r.folder || folderFromId || undefined,
+    };
+  });
+
+  return { resources, nextCursor: data.next_cursor };
+}
+
 export type VerifyResult =
   | { ok: true }
   | { ok: false; reason: "rejected" | "unverified"; status?: number };
