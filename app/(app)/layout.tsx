@@ -12,7 +12,7 @@ export default async function AppLayout({
 
   return (
     <>
-      <AppHeader email={user.email} />
+      <AppHeader email={user.email} isAdmin={user.role === "admin"} />
       {children}
     </>
   );

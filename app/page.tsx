@@ -1,10 +1,18 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/session";
+import { GalleryMock, EnvMock } from "@/components/landing/Mockups";
 
 export const dynamic = "force-dynamic";
 
 export default async function Landing() {
-  const user = await getCurrentUser();
+  // Page publique : ne jamais planter (500) si la base est indisponible.
+  // On dégrade simplement vers l'état déconnecté.
+  let user = null;
+  try {
+    user = await getCurrentUser();
+  } catch {
+    user = null;
+  }
 
   return (
     <div className="landing">
@@ -56,6 +64,11 @@ export default async function Landing() {
         </p>
       </section>
 
+      {/* HERO VISUAL */}
+      <div className="hero-visual">
+        <GalleryMock />
+      </div>
+
       {/* FEATURES */}
       <section className="features">
         <article className="feature">
@@ -82,6 +95,29 @@ export default async function Landing() {
             Copiez ou téléchargez le <code>.env</code> complet en un clic.
           </p>
         </article>
+      </section>
+
+      {/* SHOWCASE .env */}
+      <section className="showcase">
+        <div className="showcase-text">
+          <div className="section-label">Coffre à secrets</div>
+          <h2>
+            Le <em>.env</em> de chaque projet, prêt à coller.
+          </h2>
+          <p>
+            Fini les secrets qui traînent dans Slack ou un fichier oublié.
+            Centralisez les variables de chaque service, chiffrées au repos, et
+            récupérez le fichier complet quand vous en avez besoin.
+          </p>
+          <ul>
+            <li>Chiffrement AES-256 côté serveur</li>
+            <li>Copier ou télécharger le <code>.env</code> en un clic</li>
+            <li>Import d&apos;un <code>.env</code> existant en un collage</li>
+          </ul>
+        </div>
+        <div className="showcase-visual">
+          <EnvMock />
+        </div>
       </section>
 
       {/* HOW */}

@@ -13,10 +13,33 @@ export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
+  role: text("role").notNull().default("member"), // 'admin' | 'member'
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
 });
+
+// ── Invitations (inscription sur invitation) ──────────────────
+export const invites = pgTable(
+  "invites",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    code: text("code").notNull().unique(),
+    email: text("email"), // si défini, restreint l'invitation à cet e-mail
+    createdBy: uuid("created_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    usedBy: uuid("used_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [index("invites_code_idx").on(t.code)],
+);
 
 // ── Sessions (cookie HTTP-only) ───────────────────────────────
 export const sessions = pgTable(
@@ -112,6 +135,7 @@ export const secrets = pgTable(
 
 export type User = typeof users.$inferSelect;
 export type Session = typeof sessions.$inferSelect;
+export type Invite = typeof invites.$inferSelect;
 export type CloudinaryConfig = typeof cloudinaryConfigs.$inferSelect;
 export type Image = typeof images.$inferSelect;
 export type Project = typeof projects.$inferSelect;
