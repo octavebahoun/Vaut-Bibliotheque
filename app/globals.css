@@ -138,6 +138,12 @@ a { color: inherit; }
   color: var(--danger);
   min-height: 16px;
 }
+.field-hint {
+  margin-top: 7px;
+  font-size: 11px;
+  color: var(--slate);
+  line-height: 1.5;
+}
 
 /* ── Header ───────────────────────────────────────────────── */
 header.app-header {
@@ -398,6 +404,43 @@ header.app-header {
 }
 .share-page img { max-width: min(900px, 92vw); max-height: 78vh; object-fit: contain; box-shadow: 0 24px 64px rgba(26,26,30,0.12); }
 .share-meta { text-align: center; }
+
+/* ── Invitations (admin) ──────────────────────────────────── */
+.invite-toolbar {
+  display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap;
+  padding: 22px; background: var(--off); border: 1px solid var(--border);
+  margin-bottom: 28px;
+}
+.invite-toolbar .field { margin-bottom: 0; }
+.invite-toolbar .field.grow { flex: 1; min-width: 200px; }
+
+.invite-table { display: flex; flex-direction: column; }
+.invite-row {
+  display: grid; grid-template-columns: 200px 1fr 130px auto; gap: 14px;
+  align-items: center; padding: 13px 0; border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.invite-row.head {
+  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--slate); border-bottom: 1px solid var(--border2);
+}
+.invite-code {
+  font-family: ui-monospace, Menlo, monospace; font-size: 13px;
+  letter-spacing: 0.5px; color: var(--ink); cursor: pointer;
+}
+.invite-code:hover { color: var(--slate2); }
+.invite-meta { color: var(--slate2); font-size: 12px; }
+.invite-state { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+.invite-state.used { color: var(--slate); }
+.invite-state.active { color: var(--success); }
+.invite-state.expired { color: var(--danger); }
+.invite-row .row-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+@media (max-width: 720px) {
+  .invite-row { grid-template-columns: 1fr; gap: 4px; }
+  .invite-row.head { display: none; }
+  .invite-row .row-actions { justify-content: flex-start; }
+}
 
 /* ── Landing ──────────────────────────────────────────────── */
 .landing { min-height: 100vh; }

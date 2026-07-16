@@ -4,7 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logout } from "@/lib/auth/actions";
 
-export default function AppHeader({ email }: { email: string }) {
+export default function AppHeader({
+  email,
+  isAdmin = false,
+}: {
+  email: string;
+  isAdmin?: boolean;
+}) {
   const pathname = usePathname();
   const is = (p: string) => pathname.startsWith(p);
 
@@ -32,6 +38,14 @@ export default function AppHeader({ email }: { email: string }) {
         >
           Réglages
         </Link>
+        {isAdmin && (
+          <Link
+            href="/invitations"
+            className={`nav-link ${is("/invitations") ? "active" : ""}`}
+          >
+            Invitations
+          </Link>
+        )}
         <span className="stat-chip" title={email}>
           {email}
         </span>
