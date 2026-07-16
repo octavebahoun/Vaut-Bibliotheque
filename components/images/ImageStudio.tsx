@@ -34,7 +34,10 @@ export default function ImageStudio({ initialImages, configured }: Props) {
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [query, setQuery] = useState("");
   const [dragover, setDragover] = useState(false);
+  const [collection, setCollection] = useState(""); // dossier cible pour l'upload
+  const [filterFolder, setFilterFolder] = useState<string | null>(null); // null = tous
   const inputRef = useRef<HTMLInputElement>(null);
+  const collectionRef = useRef(""); // évite les closures périmées dans uploadOne
   const { toast, show } = useToast();
 
   const patchItem = useCallback((id: string, patch: Partial<QueueItem>) => {
@@ -73,11 +76,15 @@ export default function ImageStudio({ initialImages, configured }: Props) {
         }
       }
 
-      // 2) Signature serveur
+      // 2) Signature serveur (avec le dossier cible)
       patchItem(qid, { status: "upload" });
       let sign;
       try {
-        const res = await fetch("/api/upload/sign", { method: "POST" });
+        const res = await fetch("/api/upload/sign", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ collection: collectionRef.current }),
+        });
         if (!res.ok) throw new Error("Signature refusée");
         sign = await res.json();
       } catch {
@@ -133,6 +140,7 @@ export default function ImageStudio({ initialImages, configured }: Props) {
           width: data.width ? Number(data.width) : undefined,
           height: data.height ? Number(data.height) : undefined,
           format: data.format ? String(data.format) : undefined,
+          folder: sign.collection || undefined,
         });
         setImages((imgs) => [saved, ...imgs]);
         patchItem(qid, { status: "done", progress: 100 });
@@ -200,11 +208,22 @@ export default function ImageStudio({ initialImages, configured }: Props) {
   }
 
   const q = query.toLowerCase();
-  const list = images.filter(
-    (i) =>
+  const folders = Array.from(
+    new Set(images.map((i) => i.folder).filter((f): f is string => !!f)),
+  ).sort((a, b) => a.localeCompare(b));
+  const hasRoot = images.some((i) => !i.folder);
+  const list = images.filter((i) => {
+    const matchQ =
       i.name.toLowerCase().includes(q) ||
-      i.publicId.toLowerCase().includes(q),
-  );
+      i.publicId.toLowerCase().includes(q);
+    const matchF =
+      filterFolder === null
+        ? true
+        : filterFolder === ""
+          ? !i.folder
+          : i.folder === filterFolder;
+    return matchQ && matchF;
+  });
   const totalSize = images.reduce((s, i) => s + (i.size || 0), 0);
 
   return (
@@ -224,6 +243,29 @@ export default function ImageStudio({ initialImages, configured }: Props) {
             </Link>
           </div>
         )}
+
+        <div className="folder-picker">
+          <label htmlFor="collection">Dossier cible</label>
+          <input
+            id="collection"
+            className="input"
+            list="folder-list"
+            placeholder="racine (laisser vide)"
+            value={collection}
+            onChange={(e) => {
+              setCollection(e.target.value);
+              collectionRef.current = e.target.value;
+            }}
+          />
+          <datalist id="folder-list">
+            {folders.map((f) => (
+              <option key={f} value={f} />
+            ))}
+          </datalist>
+          <span className="folder-hint">
+            Les nouvelles images iront dans ce dossier Cloudinary.
+          </span>
+        </div>
 
         <div
           className={`drop-zone ${dragover ? "dragover" : ""}`}
@@ -308,6 +350,34 @@ export default function ImageStudio({ initialImages, configured }: Props) {
           </div>
         </div>
 
+        {(folders.length > 0 || hasRoot) && (
+          <div className="folder-filter">
+            <button
+              className={`folder-chip ${filterFolder === null ? "active" : ""}`}
+              onClick={() => setFilterFolder(null)}
+            >
+              Tous
+            </button>
+            {hasRoot && (
+              <button
+                className={`folder-chip ${filterFolder === "" ? "active" : ""}`}
+                onClick={() => setFilterFolder("")}
+              >
+                Racine
+              </button>
+            )}
+            {folders.map((f) => (
+              <button
+                key={f}
+                className={`folder-chip ${filterFolder === f ? "active" : ""}`}
+                onClick={() => setFilterFolder(f)}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
+        )}
+
         {list.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">◻</div>
@@ -327,6 +397,7 @@ export default function ImageStudio({ initialImages, configured }: Props) {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={img.url} alt={img.name} loading="lazy" />
                 {img.shareToken && <span className="badge-shared">Partagée</span>}
+                {img.folder && <span className="badge-folder">{img.folder}</span>}
                 <div className="img-overlay">
                   <span className="img-name-label">{img.name}</span>
                   <button

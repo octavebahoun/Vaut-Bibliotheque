@@ -7,6 +7,19 @@ export type CloudinaryCreds = {
   folder: string;
 };
 
+// Normalise un nom de collection/dossier : minuscules, [a-z0-9-_] et espaces→-.
+// Retourne "" si rien d'exploitable (= racine). Empêche toute traversée de chemin.
+export function sanitizeCollection(input: string): string {
+  return input
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s_-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^[-_]+|[-_]+$/g, "")
+    .slice(0, 40);
+}
+
 // Signature d'un upload direct depuis le navigateur (upload signé),
 // avec les identifiants Cloudinary de l'utilisateur.
 export function signUpload(

@@ -86,6 +86,7 @@ export const images = pgTable(
     width: integer("width"),
     height: integer("height"),
     format: text("format"),
+    folder: text("folder"), // collection/dossier (null = racine)
     shareToken: text("share_token").unique(), // null = non partagée
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
