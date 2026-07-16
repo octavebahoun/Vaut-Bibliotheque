@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { users, images, projects, invites } from "@/lib/db/schema";
+import { users, images, projects, libraryShares } from "@/lib/db/schema";
 import { getCurrentUser } from "@/lib/auth/session";
 
 export type UserRow = {
@@ -21,7 +21,7 @@ export type AdminStats = {
   admins: number;
   images: number;
   projects: number;
-  pendingInvites: number;
+  shares: number;
 };
 
 async function requireAdmin() {
@@ -53,17 +53,16 @@ export async function getStats(): Promise<AdminStats> {
   const [p] = await db
     .select({ n: sql<number>`count(*)::int` })
     .from(projects);
-  const [inv] = await db
+  const [s] = await db
     .select({ n: sql<number>`count(*)::int` })
-    .from(invites)
-    .where(sql`${invites.usedBy} is null`);
+    .from(libraryShares);
 
   return {
     users: u.users,
     admins: u.admins,
     images: i.n,
     projects: p.n,
-    pendingInvites: inv.n,
+    shares: s.n,
   };
 }
 

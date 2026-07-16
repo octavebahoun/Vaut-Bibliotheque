@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import {
   setUserRole,
   deleteUser,
@@ -65,7 +64,7 @@ export default function AdminDashboard({
     { label: "Admins", value: stats.admins },
     { label: "Images", value: stats.images },
     { label: "Projets", value: stats.projects },
-    { label: "Invitations en attente", value: stats.pendingInvites },
+    { label: "Partages", value: stats.shares },
   ];
 
   return (
@@ -74,9 +73,6 @@ export default function AdminDashboard({
         <div className="section-label" style={{ marginBottom: 0 }}>
           Administration · Tableau de bord
         </div>
-        <Link className="btn-sm" href="/invitations">
-          Gérer les invitations
-        </Link>
       </div>
 
       <div className="stat-tiles">

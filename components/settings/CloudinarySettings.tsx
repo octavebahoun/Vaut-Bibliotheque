@@ -8,12 +8,25 @@ import {
   type SaveResult,
 } from "@/lib/cloudinary-actions";
 import type { CloudinaryStatus } from "@/lib/cloudinary-store";
+import type { CloudinaryUsage } from "@/lib/cloudinary";
 import Toast, { useToast } from "@/components/Toast";
+
+function fmtBytes(b: number): string {
+  if (!b) return "0 B";
+  if (b < 1024) return b + " B";
+  if (b < 1048576) return (b / 1024).toFixed(1) + " KB";
+  if (b < 1073741824) return (b / 1048576).toFixed(1) + " MB";
+  return (b / 1073741824).toFixed(2) + " GB";
+}
 
 export default function CloudinarySettings({
   status,
+  usage,
+  localStats,
 }: {
   status: CloudinaryStatus;
+  usage: CloudinaryUsage | null;
+  localStats: { count: number; bytes: number };
 }) {
   const router = useRouter();
   const { toast, show } = useToast();
@@ -45,6 +58,56 @@ export default function CloudinarySettings({
   return (
     <div className="container" style={{ maxWidth: 720 }}>
       <div className="section-label">Réglages · Stockage d&apos;images</div>
+
+      {/* Usage */}
+      <div className="usage-panel">
+        <div className="usage-tile">
+          <div className="usage-value">{localStats.count}</div>
+          <div className="usage-label">Images dans Vault</div>
+        </div>
+        <div className="usage-tile">
+          <div className="usage-value">{fmtBytes(localStats.bytes)}</div>
+          <div className="usage-label">Poids enregistré</div>
+        </div>
+        {usage?.storageBytes != null && (
+          <div className="usage-tile">
+            <div className="usage-value">{fmtBytes(usage.storageBytes)}</div>
+            <div className="usage-label">Stockage Cloudinary</div>
+          </div>
+        )}
+        {usage?.creditsLimit != null && (
+          <div className="usage-tile wide">
+            <div className="usage-label" style={{ marginBottom: 8 }}>
+              Crédits Cloudinary{usage.plan ? ` · ${usage.plan}` : ""}
+            </div>
+            <div className="usage-bar">
+              <div
+                className="usage-bar-fill"
+                style={{
+                  width: `${Math.min(
+                    100,
+                    ((usage.creditsUsed ?? 0) / usage.creditsLimit) * 100,
+                  )}%`,
+                }}
+              />
+            </div>
+            <div className="usage-sub">
+              {(usage.creditsUsed ?? 0).toFixed(2)} / {usage.creditsLimit}{" "}
+              crédits
+              {usage.bandwidthBytes != null && (
+                <> · {fmtBytes(usage.bandwidthBytes)} bande passante</>
+              )}
+            </div>
+          </div>
+        )}
+        {status.configured && !usage && (
+          <div className="usage-tile wide">
+            <div className="usage-sub" style={{ color: "var(--slate)" }}>
+              Usage Cloudinary indisponible pour le moment.
+            </div>
+          </div>
+        )}
+      </div>
 
       <div className="settings-card">
         <div className="settings-head">
