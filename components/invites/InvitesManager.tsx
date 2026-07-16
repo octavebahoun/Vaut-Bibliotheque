@@ -39,9 +39,16 @@ export default function InvitesManager({
         expiresInDays: expiry === "0" ? undefined : Number(expiry),
       });
       setList((l) => [inv, ...l]);
+      const hadEmail = !!email.trim();
       setEmail("");
       await navigator.clipboard.writeText(inviteUrl(inv.code)).catch(() => {});
-      show("Invitation créée — lien copié");
+      if (hadEmail && inv.emailSent) {
+        show(`Invitation envoyée à ${inv.email} — lien aussi copié`);
+      } else if (hadEmail && !inv.emailSent) {
+        show("Invitation créée — lien copié (e-mail non configuré)");
+      } else {
+        show("Invitation créée — lien copié");
+      }
     } catch (e) {
       show(e instanceof Error ? e.message : "Erreur", true);
     } finally {

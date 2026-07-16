@@ -442,6 +442,59 @@ header.app-header {
   .invite-row .row-actions { justify-content: flex-start; }
 }
 
+/* ── Admin : tableau de bord ──────────────────────────────── */
+.admin-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; margin-bottom: 26px;
+}
+.stat-tiles {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px;
+}
+.stat-tile {
+  background: var(--off); border: 1px solid var(--border);
+  padding: 22px 20px;
+}
+.stat-value {
+  font-family: 'Cormorant', serif; font-weight: 300; font-size: 40px;
+  line-height: 1; color: var(--ink);
+}
+.stat-label {
+  margin-top: 10px; font-size: 10px; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--slate);
+}
+
+.user-table { display: flex; flex-direction: column; }
+.user-row {
+  display: grid; grid-template-columns: 1fr 100px 130px 110px auto; gap: 14px;
+  align-items: center; padding: 13px 0; border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.user-row.head {
+  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--slate); border-bottom: 1px solid var(--border2);
+}
+.u-email { color: var(--ink); word-break: break-all; }
+.u-self {
+  margin-left: 8px; font-size: 9px; letter-spacing: 1px; text-transform: uppercase;
+  color: var(--slate2); border: 1px solid var(--border2); padding: 1px 6px; border-radius: 2px;
+}
+.u-meta { color: var(--slate2); font-size: 12px; }
+.role-badge {
+  font-size: 10px; letter-spacing: 1px; text-transform: uppercase; padding: 3px 9px;
+}
+.role-badge.admin { background: var(--ink); color: #fff; }
+.role-badge.member { background: var(--light); color: var(--slate2); }
+.user-row .row-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+@media (max-width: 820px) {
+  .stat-tiles { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 720px) {
+  .user-row { grid-template-columns: 1fr; gap: 4px; }
+  .user-row.head { display: none; }
+  .user-row .row-actions { justify-content: flex-start; }
+}
+
 /* ── Landing ──────────────────────────────────────────────── */
 .landing { min-height: 100vh; }
 .landing-header {
