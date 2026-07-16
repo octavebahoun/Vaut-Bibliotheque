@@ -9,6 +9,7 @@ import {
   toggleShareAction,
 } from "@/lib/images/actions";
 import Toast, { useToast } from "@/components/Toast";
+import Lightbox from "@/components/Lightbox";
 
 type Props = { initialImages: Image[]; configured: boolean };
 
@@ -36,6 +37,7 @@ export default function ImageStudio({ initialImages, configured }: Props) {
   const [dragover, setDragover] = useState(false);
   const [collection, setCollection] = useState(""); // dossier cible pour l'upload
   const [filterFolder, setFilterFolder] = useState<string | null>(null); // null = tous
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const collectionRef = useRef(""); // évite les closures périmées dans uploadOne
   const { toast, show } = useToast();
@@ -392,14 +394,27 @@ export default function ImageStudio({ initialImages, configured }: Props) {
           </div>
         ) : (
           <div className="gallery-grid">
-            {list.map((img) => (
-              <div className="img-card" key={img.id}>
+            {list.map((img, i) => (
+              <div
+                className="img-card"
+                key={img.id}
+                onClick={() => setLightboxIndex(i)}
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={img.url} alt={img.name} loading="lazy" />
                 {img.shareToken && <span className="badge-shared">Partagée</span>}
                 {img.folder && <span className="badge-folder">{img.folder}</span>}
-                <div className="img-overlay">
-                  <span className="img-name-label">{img.name}</span>
+                <div
+                  className="img-overlay"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <span
+                    className="img-name-label"
+                    onClick={() => setLightboxIndex(i)}
+                    style={{ cursor: "zoom-in" }}
+                  >
+                    {img.name}
+                  </span>
                   <button
                     className="btn-chip"
                     onClick={(e) => copyDirect(img.url, e.currentTarget)}
@@ -424,6 +439,13 @@ export default function ImageStudio({ initialImages, configured }: Props) {
           </div>
         )}
       </div>
+
+      <Lightbox
+        items={list.map((i) => ({ url: i.url, name: i.name }))}
+        index={lightboxIndex}
+        onClose={() => setLightboxIndex(null)}
+        onIndex={setLightboxIndex}
+      />
 
       <Toast toast={toast} />
     </>

@@ -13,10 +13,12 @@ Next.js (App Router) · Neon Postgres · Drizzle · Cloudinary · déployé sur 
   (Cloudinary + DB), **partage par lien public** (`/s/<token>`).
 - 🔑 **Clés / .env** — projets regroupant des variables d'environnement, **chiffrées au repos**
   (AES-256-GCM), **copie / téléchargement du `.env` complet en un clic**, import d'un `.env` collé.
-- 🎟️ **Inscription sur invitation** — 1er compte = admin ; les suivants ont besoin d'un code.
-  Envoi optionnel par e-mail (Resend), sinon lien copiable.
-- 🛠️ **Tableau de bord admin** — stats, liste des utilisateurs, gestion des rôles et suppression,
-  gestion des invitations.
+- 👥 **Inscription ouverte** — tout le monde peut créer un compte ; le 1er compte devient admin.
+- 🤝 **Partage de bibliothèque** — invitez un autre compte (par e-mail) à voir vos images
+  marquées « partageables », en lecture seule. Page « Partagé avec moi » + e-mail optionnel (Resend).
+- 🔍 **Lightbox** — visionneuse plein écran (navigation clavier, copier le lien).
+- 📊 **Usage** — stats locales + usage réel Cloudinary (stockage, crédits, bande passante).
+- 🛠️ **Tableau de bord admin** — stats, liste des utilisateurs, gestion des rôles et suppression.
 
 ## Prérequis
 

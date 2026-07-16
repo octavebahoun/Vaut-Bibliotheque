@@ -6,6 +6,7 @@ import {
   timestamp,
   integer,
   index,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
 
 // ── Utilisateurs ──────────────────────────────────────────────
@@ -19,26 +20,29 @@ export const users = pgTable("users", {
     .defaultNow(),
 });
 
-// ── Invitations (inscription sur invitation) ──────────────────
-export const invites = pgTable(
-  "invites",
+// ── Partage de bibliothèque entre comptes ─────────────────────
+// L'owner invite un e-mail : ce compte voit les images "partageables"
+// (shareToken défini) de l'owner, en lecture seule.
+export const libraryShares = pgTable(
+  "library_shares",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    code: text("code").notNull().unique(),
-    email: text("email"), // si défini, restreint l'invitation à cet e-mail
-    createdBy: uuid("created_by")
+    ownerId: uuid("owner_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    usedBy: uuid("used_by").references(() => users.id, {
-      onDelete: "set null",
-    }),
-    usedAt: timestamp("used_at", { withTimezone: true }),
-    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    inviteeEmail: text("invitee_email").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
   },
-  (t) => [index("invites_code_idx").on(t.code)],
+  (t) => [
+    index("library_shares_owner_idx").on(t.ownerId),
+    index("library_shares_email_idx").on(t.inviteeEmail),
+    uniqueIndex("library_shares_owner_email_uq").on(
+      t.ownerId,
+      t.inviteeEmail,
+    ),
+  ],
 );
 
 // ── Sessions (cookie HTTP-only) ───────────────────────────────
@@ -136,7 +140,7 @@ export const secrets = pgTable(
 
 export type User = typeof users.$inferSelect;
 export type Session = typeof sessions.$inferSelect;
-export type Invite = typeof invites.$inferSelect;
+export type LibraryShare = typeof libraryShares.$inferSelect;
 export type CloudinaryConfig = typeof cloudinaryConfigs.$inferSelect;
 export type Image = typeof images.$inferSelect;
 export type Project = typeof projects.$inferSelect;

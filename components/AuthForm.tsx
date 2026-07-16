@@ -4,13 +4,7 @@ import { useActionState } from "react";
 import Link from "next/link";
 import { login, register, type AuthState } from "@/lib/auth/actions";
 
-export default function AuthForm({
-  mode,
-  initialCode = "",
-}: {
-  mode: "login" | "register";
-  initialCode?: string;
-}) {
+export default function AuthForm({ mode }: { mode: "login" | "register" }) {
   const action = mode === "login" ? login : register;
   const [state, formAction, pending] = useActionState<AuthState, FormData>(
     action,
@@ -68,23 +62,6 @@ export default function AuthForm({
               minLength={isLogin ? undefined : 8}
             />
           </div>
-
-          {!isLogin && (
-            <div className="field">
-              <label htmlFor="code">Code d&apos;invitation</label>
-              <input
-                id="code"
-                name="code"
-                type="text"
-                autoComplete="off"
-                placeholder="XXXX-XXXX-XXXX"
-                defaultValue={initialCode}
-              />
-              <p className="field-hint">
-                Requis pour rejoindre (sauf pour le tout premier compte).
-              </p>
-            </div>
-          )}
 
           <button className="btn-primary" type="submit" disabled={pending}>
             {pending

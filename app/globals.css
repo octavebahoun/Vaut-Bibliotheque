@@ -716,6 +716,87 @@ header.app-header {
   .landing-footer { padding: 28px 20px; flex-direction: column; gap: 10px; }
 }
 
+/* ── Lightbox ─────────────────────────────────────────────── */
+.lb-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  background: rgba(20,20,24,0.92);
+  display: flex; align-items: center; justify-content: center;
+  padding: 40px; animation: lb-fade 0.2s ease forwards;
+}
+@keyframes lb-fade { from { opacity: 0; } to { opacity: 1; } }
+.lb-figure {
+  margin: 0; max-width: 92vw; max-height: 88vh;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+}
+.lb-figure img {
+  max-width: 92vw; max-height: 78vh; object-fit: contain;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+}
+.lb-caption {
+  display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+  justify-content: center; color: #e8e8ea;
+}
+.lb-name { font-size: 13px; color: rgba(255,255,255,0.75); }
+.lb-actions { display: flex; align-items: center; gap: 10px; }
+.lb-btn {
+  background: none; border: 1px solid rgba(255,255,255,0.28);
+  color: rgba(255,255,255,0.8); font-family: 'Jost', sans-serif;
+  font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
+  padding: 7px 14px; cursor: pointer; text-decoration: none; transition: all 0.2s;
+}
+.lb-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+.lb-count { font-size: 11px; color: rgba(255,255,255,0.55); }
+.lb-close {
+  position: absolute; top: 22px; right: 26px;
+  background: none; border: none; color: rgba(255,255,255,0.7);
+  font-size: 22px; cursor: pointer; line-height: 1;
+}
+.lb-close:hover { color: #fff; }
+.lb-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  background: none; border: none; color: rgba(255,255,255,0.6);
+  font-size: 48px; cursor: pointer; padding: 0 18px; line-height: 1;
+}
+.lb-nav:hover { color: #fff; }
+.lb-nav.prev { left: 8px; }
+.lb-nav.next { right: 8px; }
+
+/* ── Partagé avec moi ─────────────────────────────────────── */
+.shared-owner {
+  display: flex; align-items: baseline; gap: 12px;
+  margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border);
+}
+.shared-owner-email {
+  font-family: 'Cormorant', serif; font-size: 20px; color: var(--ink);
+}
+
+/* ── Usage ────────────────────────────────────────────────── */
+.usage-panel {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px;
+  margin-bottom: 28px;
+}
+.usage-tile {
+  background: var(--off); border: 1px solid var(--border); padding: 20px;
+}
+.usage-tile.wide { grid-column: 1 / -1; }
+.usage-value {
+  font-family: 'Cormorant', serif; font-weight: 300; font-size: 30px;
+  line-height: 1; color: var(--ink);
+}
+.usage-label {
+  margin-top: 8px; font-size: 10px; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--slate);
+}
+.usage-bar {
+  height: 4px; background: var(--border); overflow: hidden;
+}
+.usage-bar-fill { height: 100%; background: var(--ink); transition: width 0.4s; }
+.usage-sub { margin-top: 8px; font-size: 12px; color: var(--slate2); }
+
+@media (max-width: 640px) {
+  .usage-panel { grid-template-columns: repeat(2, 1fr); }
+}
+
 /* ── Réglages ─────────────────────────────────────────────── */
 .settings-card {
   border: 1px solid var(--border); background: var(--white);

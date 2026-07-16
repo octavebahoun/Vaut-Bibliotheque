@@ -33,6 +33,12 @@ export default function AppHeader({
           Clés / .env
         </Link>
         <Link
+          href="/partage"
+          className={`nav-link ${is("/partage") ? "active" : ""}`}
+        >
+          Partage
+        </Link>
+        <Link
           href="/settings"
           className={`nav-link ${is("/settings") ? "active" : ""}`}
         >
@@ -41,9 +47,7 @@ export default function AppHeader({
         {isAdmin && (
           <Link
             href="/admin"
-            className={`nav-link ${
-              is("/admin") || is("/invitations") ? "active" : ""
-            }`}
+            className={`nav-link ${is("/admin") ? "active" : ""}`}
           >
             Admin
           </Link>

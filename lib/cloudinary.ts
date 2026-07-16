@@ -53,6 +53,50 @@ export async function destroyImage(
   );
 }
 
+export type CloudinaryUsage = {
+  plan?: string;
+  creditsUsed?: number;
+  creditsLimit?: number;
+  storageBytes?: number;
+  bandwidthBytes?: number;
+  transformations?: number;
+};
+
+// Usage réel du compte via l'Admin API /usage (Basic auth).
+export async function getCloudinaryUsage(
+  creds: Omit<CloudinaryCreds, "folder">,
+): Promise<CloudinaryUsage | null> {
+  const auth = Buffer.from(`${creds.apiKey}:${creds.apiSecret}`).toString(
+    "base64",
+  );
+  try {
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${creds.cloudName}/usage`,
+      { headers: { Authorization: `Basic ${auth}` }, cache: "no-store" },
+    );
+    if (!res.ok) return null;
+    const d = (await res.json()) as Record<string, unknown>;
+    const credits = d.credits as
+      | { usage?: number; limit?: number }
+      | undefined;
+    const storage = d.storage as { usage?: number } | undefined;
+    const bandwidth = d.bandwidth as { usage?: number } | undefined;
+    const transformations = d.transformations as
+      | { usage?: number }
+      | undefined;
+    return {
+      plan: typeof d.plan === "string" ? d.plan : undefined,
+      creditsUsed: credits?.usage,
+      creditsLimit: credits?.limit,
+      storageBytes: storage?.usage,
+      bandwidthBytes: bandwidth?.usage,
+      transformations: transformations?.usage,
+    };
+  } catch {
+    return null;
+  }
+}
+
 // Vérifie des identifiants via l'endpoint /ping de l'Admin API (Basic auth).
 export async function pingCloudinary(
   creds: Omit<CloudinaryCreds, "folder">,
