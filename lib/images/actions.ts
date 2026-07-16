@@ -17,6 +17,7 @@ export type UploadedImage = {
   width?: number;
   height?: number;
   format?: string;
+  folder?: string;
 };
 
 export async function saveImage(img: UploadedImage) {
@@ -34,6 +35,7 @@ export async function saveImage(img: UploadedImage) {
       width: img.width ?? null,
       height: img.height ?? null,
       format: img.format ?? null,
+      folder: img.folder && img.folder.length > 0 ? img.folder : null,
     })
     .returning();
 

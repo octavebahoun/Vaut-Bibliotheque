@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getUserCreds } from "@/lib/cloudinary-store";
-import { signUpload } from "@/lib/cloudinary";
+import { signUpload, sanitizeCollection } from "@/lib/cloudinary";
 
 // Renvoie une signature d'upload Cloudinary avec les identifiants de l'utilisateur.
-export async function POST() {
+// Accepte une "collection" optionnelle → sous-dossier du dossier racine.
+export async function POST(req: Request) {
   const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
@@ -18,9 +19,17 @@ export async function POST() {
     );
   }
 
+  let collection = "";
+  try {
+    const body = (await req.json()) as { collection?: string };
+    collection = sanitizeCollection(body?.collection ?? "");
+  } catch {
+    collection = "";
+  }
+
   try {
     const timestamp = Math.round(Date.now() / 1000);
-    const folder = creds.folder;
+    const folder = collection ? `${creds.folder}/${collection}` : creds.folder;
     const { signature, apiKey, cloudName } = signUpload(creds, {
       timestamp,
       folder,
@@ -29,6 +38,7 @@ export async function POST() {
       signature,
       timestamp,
       folder,
+      collection,
       apiKey,
       cloudName,
     });

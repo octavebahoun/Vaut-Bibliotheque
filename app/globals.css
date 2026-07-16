@@ -297,6 +297,37 @@ header.app-header {
 }
 .drop-sub { font-size: 12px; color: var(--slate); }
 
+/* ── Sélecteur de dossier (upload) ────────────────────────── */
+.folder-picker {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.folder-picker label {
+  font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--slate2); font-weight: 500;
+}
+.folder-picker input { width: 220px; }
+.folder-hint { font-size: 11px; color: var(--slate); }
+
+/* ── Filtre par dossier ───────────────────────────────────── */
+.folder-filter {
+  display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;
+}
+.folder-chip {
+  background: none; border: 1px solid var(--border2); color: var(--slate2);
+  font-family: 'Jost', sans-serif; font-size: 11px; letter-spacing: 0.5px;
+  padding: 6px 14px; cursor: pointer; transition: all 0.2s;
+}
+.folder-chip:hover { border-color: var(--ink2); color: var(--ink); }
+.folder-chip.active { background: var(--ink); border-color: var(--ink); color: #fff; }
+
+.badge-folder {
+  position: absolute; top: 8px; right: 8px;
+  font-size: 8px; letter-spacing: 1px; text-transform: uppercase;
+  background: rgba(255,255,255,0.86); color: var(--ink2);
+  padding: 3px 7px; border-radius: 2px;
+}
+
 /* ── File d'upload ────────────────────────────────────────── */
 .upload-queue { margin-top: 16px; display: flex; flex-direction: column; gap: 2px; }
 .upload-item {
