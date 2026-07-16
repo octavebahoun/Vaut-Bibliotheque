@@ -39,75 +39,65 @@ async function countAdmins(): Promise<number> {
   return n;
 }
 
+async function countRows(table: typeof users | typeof images | typeof projects | typeof libraryShares): Promise<number> {
+  const [row] = await db.select({ n: sql<number>`count(*)::int` }).from(table);
+  return row?.n ?? 0;
+}
+
 export async function getStats(): Promise<AdminStats> {
   await requireAdmin();
-  const [u] = await db
-    .select({
-      users: sql<number>`count(*)::int`,
-      admins: sql<number>`count(*) filter (where ${users.role} = 'admin')::int`,
-    })
-    .from(users);
-  const [i] = await db
-    .select({ n: sql<number>`count(*)::int` })
-    .from(images);
-  const [p] = await db
-    .select({ n: sql<number>`count(*)::int` })
-    .from(projects);
-  const [s] = await db
-    .select({ n: sql<number>`count(*)::int` })
-    .from(libraryShares);
+  const [usersCount, adminsCount, imagesCount, projectsCount, sharesCount] =
+    await Promise.all([
+      countRows(users),
+      countAdmins(),
+      countRows(images),
+      countRows(projects),
+      countRows(libraryShares),
+    ]);
 
   return {
-    users: u.users,
-    admins: u.admins,
-    images: i.n,
-    projects: p.n,
-    shares: s.n,
+    users: usersCount,
+    admins: adminsCount,
+    images: imagesCount,
+    projects: projectsCount,
+    shares: sharesCount,
   };
 }
 
 export async function listUsers(): Promise<UserRow[]> {
   const me = await requireAdmin();
 
-  const imgCounts = db
-    .select({
-      userId: images.userId,
-      c: sql<number>`count(*)::int`.as("c"),
-    })
-    .from(images)
-    .groupBy(images.userId)
-    .as("img_counts");
+  // Requêtes simples (pas de sous-requêtes jointes) puis fusion en JS.
+  const [userRows, imgCounts, projCounts] = await Promise.all([
+    db
+      .select({
+        id: users.id,
+        email: users.email,
+        role: users.role,
+        createdAt: users.createdAt,
+      })
+      .from(users)
+      .orderBy(users.createdAt),
+    db
+      .select({ userId: images.userId, c: sql<number>`count(*)::int` })
+      .from(images)
+      .groupBy(images.userId),
+    db
+      .select({ userId: projects.userId, c: sql<number>`count(*)::int` })
+      .from(projects)
+      .groupBy(projects.userId),
+  ]);
 
-  const projCounts = db
-    .select({
-      userId: projects.userId,
-      c: sql<number>`count(*)::int`.as("c"),
-    })
-    .from(projects)
-    .groupBy(projects.userId)
-    .as("proj_counts");
+  const imgMap = new Map(imgCounts.map((r) => [r.userId, r.c]));
+  const projMap = new Map(projCounts.map((r) => [r.userId, r.c]));
 
-  const rows = await db
-    .select({
-      id: users.id,
-      email: users.email,
-      role: users.role,
-      createdAt: users.createdAt,
-      imageCount: sql<number>`coalesce(${imgCounts.c}, 0)::int`,
-      projectCount: sql<number>`coalesce(${projCounts.c}, 0)::int`,
-    })
-    .from(users)
-    .leftJoin(imgCounts, eq(imgCounts.userId, users.id))
-    .leftJoin(projCounts, eq(projCounts.userId, users.id))
-    .orderBy(users.createdAt);
-
-  return rows.map((r) => ({
+  return userRows.map((r) => ({
     id: r.id,
     email: r.email,
     role: r.role,
     createdAt: r.createdAt.toISOString(),
-    imageCount: r.imageCount,
-    projectCount: r.projectCount,
+    imageCount: imgMap.get(r.id) ?? 0,
+    projectCount: projMap.get(r.id) ?? 0,
     isSelf: r.id === me.id,
   }));
 }
