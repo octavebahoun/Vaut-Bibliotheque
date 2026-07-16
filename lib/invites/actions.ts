@@ -2,10 +2,12 @@
 
 import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { invites, users } from "@/lib/db/schema";
 import { getCurrentUser } from "@/lib/auth/session";
+import { sendInviteEmail } from "@/lib/email";
 
 export type InviteView = {
   id: string;
@@ -15,7 +17,16 @@ export type InviteView = {
   usedByEmail: string | null;
   expiresAt: string | null;
   createdAt: string;
+  emailSent?: boolean;
 };
+
+async function originFromRequest(): Promise<string> {
+  if (process.env.APP_URL) return process.env.APP_URL.replace(/\/$/, "");
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
+  const proto = h.get("x-forwarded-proto") ?? "https";
+  return `${proto}://${host}`;
+}
 
 async function requireAdmin() {
   const user = await getCurrentUser();
@@ -91,6 +102,15 @@ export async function createInvite(input: {
     .values({ code, email, createdBy: admin.id, expiresAt })
     .returning();
 
+  // Envoi de l'e-mail si une adresse est fournie (dégradé si Resend non configuré).
+  let emailSent = false;
+  if (email) {
+    const origin = await originFromRequest();
+    const url = `${origin}/register?code=${encodeURIComponent(row.code)}`;
+    const res = await sendInviteEmail({ to: email, code: row.code, url });
+    emailSent = res.sent;
+  }
+
   revalidatePath("/invitations");
   return {
     id: row.id,
@@ -100,6 +120,7 @@ export async function createInvite(input: {
     usedByEmail: null,
     expiresAt: row.expiresAt ? row.expiresAt.toISOString() : null,
     createdAt: row.createdAt.toISOString(),
+    emailSent,
   };
 }
 

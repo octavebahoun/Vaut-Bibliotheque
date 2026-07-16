@@ -13,6 +13,10 @@ Next.js (App Router) · Neon Postgres · Drizzle · Cloudinary · déployé sur 
   (Cloudinary + DB), **partage par lien public** (`/s/<token>`).
 - 🔑 **Clés / .env** — projets regroupant des variables d'environnement, **chiffrées au repos**
   (AES-256-GCM), **copie / téléchargement du `.env` complet en un clic**, import d'un `.env` collé.
+- 🎟️ **Inscription sur invitation** — 1er compte = admin ; les suivants ont besoin d'un code.
+  Envoi optionnel par e-mail (Resend), sinon lien copiable.
+- 🛠️ **Tableau de bord admin** — stats, liste des utilisateurs, gestion des rôles et suppression,
+  gestion des invitations.
 
 ## Prérequis
 
@@ -37,6 +41,9 @@ npm install
 |---|---|
 | `DATABASE_URL` | Chaîne de connexion Neon (`?sslmode=require`) |
 | `SECRETS_ENCRYPTION_KEY` | Clé AES-256 en base64 (**exactement 32 octets**) : `openssl rand -base64 32`. Chiffre les secrets `.env` **et** les API secrets Cloudinary des utilisateurs. |
+| `RESEND_API_KEY` | *(optionnel)* Clé [Resend](https://resend.com) pour l'envoi des invitations par e-mail. Sans elle, les invitations restent utilisables via lien copiable. |
+| `EMAIL_FROM` | *(optionnel)* Adresse expéditrice (`"Vault <onboarding@resend.dev>"` en test, domaine vérifié en prod). |
+| `APP_URL` | *(optionnel)* URL publique pour les liens d'e-mail ; déduite des en-têtes sinon. |
 
 > ⚠️ Ne change jamais `SECRETS_ENCRYPTION_KEY` après avoir stocké des secrets :
 > les valeurs chiffrées deviendraient indéchiffrables.

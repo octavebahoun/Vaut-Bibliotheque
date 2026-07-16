@@ -40,10 +40,12 @@ export default function AppHeader({
         </Link>
         {isAdmin && (
           <Link
-            href="/invitations"
-            className={`nav-link ${is("/invitations") ? "active" : ""}`}
+            href="/admin"
+            className={`nav-link ${
+              is("/admin") || is("/invitations") ? "active" : ""
+            }`}
           >
-            Invitations
+            Admin
           </Link>
         )}
         <span className="stat-chip" title={email}>
