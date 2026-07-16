@@ -37,7 +37,7 @@ export default function CloudinarySettings({
 
   useEffect(() => {
     if (state.ok) {
-      show("Cloudinary connecté ✓");
+      show(state.warning ?? "Cloudinary connecté ✓", !!state.warning);
       router.refresh();
     }
   }, [state, router, show]);

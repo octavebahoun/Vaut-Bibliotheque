@@ -5,10 +5,10 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { cloudinaryConfigs } from "@/lib/db/schema";
 import { encryptSecret, decryptSecret } from "@/lib/crypto";
-import { pingCloudinary } from "@/lib/cloudinary";
+import { verifyCloudinary } from "@/lib/cloudinary";
 import { getCurrentUser } from "@/lib/auth/session";
 
-export type SaveResult = { ok: boolean; error?: string };
+export type SaveResult = { ok: boolean; error?: string; warning?: string };
 
 // Enregistre (ou met à jour) la config Cloudinary de l'utilisateur.
 // Vérifie les identifiants via un ping avant de les stocker.
@@ -44,11 +44,15 @@ export async function saveCloudinaryConfig(
     return { ok: false, error: "Cloud name, API key et API secret sont requis" };
   }
 
-  const valid = await pingCloudinary({ cloudName, apiKey, apiSecret });
-  if (!valid) {
+  const verdict = await verifyCloudinary({ cloudName, apiKey, apiSecret });
+  // On ne bloque que sur un refus d'authentification avéré (401/404).
+  if (!verdict.ok && verdict.reason === "rejected") {
     return {
       ok: false,
-      error: "Identifiants refusés par Cloudinary — vérifiez-les",
+      error:
+        verdict.status === 404
+          ? "Cloud name introuvable — vérifiez-le (Settings → API Keys)."
+          : "API Key ou API Secret refusés par Cloudinary — vérifiez-les.",
     };
   }
 
@@ -63,6 +67,14 @@ export async function saveCloudinaryConfig(
 
   revalidatePath("/settings");
   revalidatePath("/images");
+  // Enregistré, mais la vérification n'a pas pu aboutir : on prévient.
+  if (!verdict.ok) {
+    return {
+      ok: true,
+      warning:
+        "Enregistré, mais impossible de vérifier auprès de Cloudinary pour l'instant. Faites un test d'upload ; si ça échoue, revérifiez vos identifiants.",
+    };
+  }
   return { ok: true };
 }
 
