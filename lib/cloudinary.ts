@@ -97,22 +97,38 @@ export async function getCloudinaryUsage(
   }
 }
 
+export type VerifyResult =
+  | { ok: true }
+  | { ok: false; reason: "rejected" | "unverified"; status?: number };
+
 // Vérifie des identifiants via l'endpoint /ping de l'Admin API (Basic auth).
-export async function pingCloudinary(
+// On distingue un vrai refus d'authentification (401/403 avec erreur Cloudinary)
+// d'une simple impossibilité de vérifier (réseau, réponse inattendue).
+export async function verifyCloudinary(
   creds: Omit<CloudinaryCreds, "folder">,
-): Promise<boolean> {
+): Promise<VerifyResult> {
   const auth = Buffer.from(`${creds.apiKey}:${creds.apiSecret}`).toString(
     "base64",
   );
   try {
     const res = await fetch(
       `https://api.cloudinary.com/v1_1/${creds.cloudName}/ping`,
-      { headers: { Authorization: `Basic ${auth}` } },
+      { headers: { Authorization: `Basic ${auth}` }, cache: "no-store" },
     );
-    if (!res.ok) return false;
-    const data = (await res.json()) as { status?: string };
-    return data?.status === "ok";
+    if (res.ok) {
+      const data = (await res.json().catch(() => null)) as {
+        status?: string;
+      } | null;
+      if (data?.status === "ok") return { ok: true };
+      return { ok: false, reason: "unverified", status: res.status };
+    }
+    // 401 = mauvaise API key/secret ; 404 = cloud name inexistant.
+    if (res.status === 401 || res.status === 404) {
+      return { ok: false, reason: "rejected", status: res.status };
+    }
+    // Autres statuts (403 proxy, 5xx…) : on ne peut pas conclure.
+    return { ok: false, reason: "unverified", status: res.status };
   } catch {
-    return false;
+    return { ok: false, reason: "unverified" };
   }
 }
